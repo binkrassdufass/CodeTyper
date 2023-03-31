@@ -8,6 +8,7 @@ body {
   background-color: var(--background-color);
   color: var(--font-color);
   font-size: calc(20px + 1vw);
+  line-height: calc(26px + 1vw);
 }
 .correct-letter {
   opacity: 1 !important;
