@@ -3,7 +3,7 @@ import { createText } from "./createText";
 import type { LetterInterface } from "../../types/interfaces";
 const octokit = new Octokit();
 
-async function getRandomSourceCode(): Promise<LetterInterface[][]> {
+async function getRandomSourceCode(): Promise<LetterInterface[][][]> {
   // Generate a random query string to search for repositories
 
   // Search for repositories using the random query string
@@ -58,14 +58,15 @@ async function getRandomSourceCode(): Promise<LetterInterface[][]> {
       new Uint8Array([...fileContentString].map((char) => char.charCodeAt(0)))
     );
 
-    const lines = sourceCode.split(/\r?\n/);
-    const startLine = Math.floor(Math.random() * (lines.length - 7));
+    let lines = sourceCode.split(/\r?\n/);
+    lines = lines.map((line) => `${line} ↵`);
+    const startLine = Math.floor(Math.random() * (lines.length - 10));
 
     // Get a slice of 7 lines starting from the random starting line
     const codeBlock = lines
       .slice(startLine, startLine + 10)
-      .map((str) => str.replace(/^\s+/, ""))
-      .join("\n");
+      .map((str) => str.replace(/^\s+/, ""));
+
     return createText(codeBlock);
   }
 }

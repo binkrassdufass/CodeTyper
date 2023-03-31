@@ -1,16 +1,31 @@
 import type { LetterInterface } from "../../types/interfaces";
-export let createText = (text: string): LetterInterface[][] => {
-  let result: LetterInterface[][] = [];
-  let words: string[] = text.split(" ");
-  words.forEach((word) => {
-    let wordStorage: LetterInterface[] = [];
-    for (let letter = 0; letter < word.length; letter++) {
-      let letterObj: LetterInterface = {
-        letter: word[letter],
-      };
-      wordStorage.push(letterObj);
+
+export const createText = (lines: string[]): LetterInterface[][][] => {
+  const result: LetterInterface[][][] = [];
+
+  lines.forEach((line) => {
+    const lineStorage: LetterInterface[][] = [];
+    const words: string[] = line.split(" ");
+
+    words.forEach((word) => {
+      const wordStorage: LetterInterface[] = [];
+
+      for (let letter = 0; letter < word.length; letter++) {
+        const letterObj: LetterInterface = { letter: word[letter] };
+        wordStorage.push(letterObj);
+      }
+
+      if (wordStorage.length > 0) {
+        lineStorage.push(wordStorage);
+      }
+    });
+
+    if (lineStorage.length > 0) {
+      result.push(lineStorage);
     }
-    result.push(wordStorage);
   });
-  return result;
+
+  return result.filter(
+    (line) => line.length > 0 && line.some((word) => word.length > 1)
+  );
 };
