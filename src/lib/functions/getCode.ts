@@ -1,14 +1,13 @@
 import { Octokit, App } from "https://cdn.skypack.dev/octokit";
 import { createText } from "./createText";
 import type { LetterInterface } from "../../types/interfaces";
-const octokit = new Octokit();
+import { randomKeywords } from "../data/requestFilter";
+const octokit = new Octokit({
+  auth: import.meta.env.VITE_GITHUB_PERSONAL_ACCESS_TOKEN,
+});
 
 async function getRandomSourceCode(): Promise<LetterInterface[][][]> {
-  // Generate a random query string to search for repositories
-
-  // Search for repositories using the random query string
   while (true) {
-    const randomKeywords = ["cool", "awesome", "amazing"];
     const randomKeyword =
       randomKeywords[Math.floor(Math.random() * randomKeywords.length)];
     const repos = await octokit.rest.search.repos({
@@ -59,12 +58,19 @@ async function getRandomSourceCode(): Promise<LetterInterface[][][]> {
     );
 
     let lines = sourceCode.split(/\r?\n/);
-    lines = lines.map((line) => `${line} ↵`);
-    const startLine = Math.floor(Math.random() * (lines.length - 10));
 
-    // Get a slice of 7 lines starting from the random starting line
+    lines = lines.map((line) => `${line} ↵`);
+
+    if (lines.length < 30) continue;
+    let startLine = Math.floor(Math.random() * (lines.length - 30));
+    while (lines.length - startLine < 30) {
+      startLine = Math.floor(Math.random() * (lines.length - 30));
+    }
+
+    // Get a slice of 30 lines starting from the random starting line
     const codeBlock = lines
-      .slice(startLine, startLine + 10)
+      .slice(startLine, startLine + 30)
+      .filter((line) => !/^\s*#/.test(line))
       .map((str) => str.replace(/^\s+/, ""));
 
     return createText(codeBlock);

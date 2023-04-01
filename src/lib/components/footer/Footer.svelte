@@ -1,18 +1,19 @@
 <script lang="ts">
-  import Mode from "./Mode.svelte";
+  import Site from "./Site.svelte";
 
-  let modes: Array<string> = ["time", "words"];
+  let sites: Array<string> = ["Impressum", "Datenschuterklärung"];
 </script>
 
 <main class="flex justify-around">
-  {#each modes as mode (mode)}
-    <Mode {mode} />
+  {#each sites as site (site)}
+    <Site {site} />
   {/each}
 </main>
 
 <style>
   main {
     background-color: var(--second-color);
-    padding: 2vw;
+    padding: 1vw;
+    font-size: 20px;
   }
 </style>

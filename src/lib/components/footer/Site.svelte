@@ -1,9 +1,9 @@
 <script lang="ts">
-  export let mode: string;
+  export let site: string;
 </script>
 
 <button class="py-1 ">
-  {mode}
+  {site}
 </button>
 
 <style>

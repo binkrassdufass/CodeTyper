@@ -1,18 +1,22 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { text } from "svelte/internal";
+  import Filter from "../lib/components/filter/Filter.svelte";
   import Footer from "../lib/components/footer/Footer.svelte";
   import Header from "../lib/components/header/Header.svelte";
+  import LifeStats from "../lib/components/stats/LifeStats.svelte";
   import getRandomSourceCode from "../lib/functions/getCode";
   import type { LetterInterface } from "../types/interfaces";
+  import { countdown, counter } from "../lib/stores/stores";
+  import { navigate } from "svelte-routing";
 
   let input = "";
+  let inputElement: HTMLTextAreaElement;
   let textArray: LetterInterface[][][] = [];
 
   let currentWord = 0;
   let currentLine = 0;
   let cursor: HTMLDivElement;
   let cursorContainer: HTMLDivElement;
+  let resetText = false;
 
   getRandomSourceCode().then((result) => {
     textArray = result;
@@ -35,12 +39,12 @@
   $: {
     function checkLetter() {
       if (textArray.length === 0) return;
-
       const word = textArray[currentLine][currentWord];
       if (!word || !word[0]?.element) return;
 
       for (let letter = input.length; letter < word.length; letter++) {
         const isCorrect = word[letter].typedCorrectly;
+        if (isCorrect) counter.sub();
         word[letter].element.classList.remove(
           isCorrect ? "correct-letter" : "falsy-letter"
         );
@@ -48,6 +52,8 @@
       }
 
       if (input === "") return;
+
+      countdown.start();
 
       const currentLetter = input.slice(-1);
       const index = input.length - 1;
@@ -68,6 +74,7 @@
         word[index].letter === currentLetter ||
         (word[index].letter == "↵" && currentLetter == "\n")
       ) {
+        counter.add();
         word[index].typedCorrectly = true;
         element.classList.add("correct-letter");
       } else {
@@ -116,6 +123,12 @@
       scrollContent();
     }
   }
+
+  $: {
+    if ($countdown <= 0) {
+      navigate("/");
+    }
+  }
 </script>
 
 <div
@@ -125,13 +138,19 @@
     input.focus();
   }}
 >
-  <div class="h-2/12">
+  <div>
     <Header />
+
+    <div class="flex justify-center">
+      <LifeStats />
+    </div>
   </div>
-  <div
-    class="h-8/12 overflow-y-scroll pointer-events-none flex flex-col items-center justify-start"
+  <button
+    on:click={() => inputElement.focus()}
+    class=" writing-part overflow-y-scroll flex flex-col items-center justify-start"
   >
     <textarea
+      bind:this={inputElement}
       bind:value={input}
       id="input"
       autofocus
@@ -140,19 +159,20 @@
         setTimeout(() => element.focus(), 0);
       }}
     />
+
     <div
-      class="flex flex-col my-2 overflow-y-hidden scrollbar-hide relative w-11/12"
+      class="flex flex-col my-2  overflow-y-hidden  scrollbar-hide relative w-11/12"
       bind:this={cursorContainer}
     >
       <div class="absolute cursor" bind:this={cursor} />
 
-      {#if textArray.length == 0}
+      {#if textArray.length == 0 || resetText}
         <p>Bitte gedulden Sie sich, der text wird geladen...</p>
       {:else}
         {#each textArray as line, i (i)}
-          <div class="flex flex-wrap">
+          <div class="flex  flex-wrap">
             {#each line as word, wi (wi)}
-              <div class="word flex">
+              <div class="word flex flex-wrap ">
                 {#each word as letter, li (`${letter}${li}`)}
                   <div
                     class="letter"
@@ -168,8 +188,19 @@
         {/each}
       {/if}
     </div>
-  </div>
-  <div class="h-2/12">
+  </button>
+  <div>
+    <div class="w-full flex justify-center items-center">
+      <Filter
+        on:reset={() => {
+          resetText = true;
+          getRandomSourceCode().then((result) => {
+            textArray = result;
+            resetText = false;
+          });
+        }}
+      />
+    </div>
     <Footer />
   </div>
 </div>
@@ -188,6 +219,10 @@
   .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+  }
+
+  .writing-part {
+    cursor: default;
   }
 
   .cursor {
